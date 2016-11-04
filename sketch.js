@@ -4,11 +4,9 @@ var counter = 0;
 function preload(){
 	var id = urlParam('portraitId');
 	print(id);
-	if(id == 'sun'){
-		data = loadJSON("assets/sun.json");
-	}else if(id == 'eye'){
-		data = loadJSON("assets/eye.json");
-	}
+
+	data = loadJSON("assets/portraitData" + id + ".json");
+
 	console.log(data.length);
 }
 var urlParam = function(name, w){
