@@ -5,7 +5,6 @@ function preload(){
 	var id = urlParam('portraitId');
 	print(id);
 	if(id == 'sun'){
-		
 		data = loadJSON("assets/sun.json");
 	}else if(id == 'eye'){
 		data = loadJSON("assets/eye.json");
