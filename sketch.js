@@ -2,6 +2,7 @@ var pts = [];
 var data = [];
 var counter = 0;
 var appSettings = [];
+var isDraw = true;
 
 // size
 var scaleFactor;
@@ -15,9 +16,15 @@ var brushSizeMax;
 var brushOpacity;
 var brushOpacityMax;
 var pressure;
-var colorNum = 0;
-
+var colorNum = 3;
+var lineWidth;
+var lineWidthMax = 5;
 var swatch;
+var brushMode = 0;
+var brushModeSize = 2;
+
+// bg
+var circleMode = 0;
 
 function preload(){
 	var id = urlParam('portraitId');
@@ -31,6 +38,7 @@ var urlParam = function(name, w){
         val = w.location.search.match(rx);
     return !val ? '':val[1];
 }
+// setup
 function setup(){
    	createCanvas( windowWidth, windowHeight );
    	
@@ -43,16 +51,41 @@ function setup(){
 	clearPts();
 
 	background(255);
+	generateSwatch();
+}
+function resetDrawing(){
+	clear();
+	clearPts();
+	generateSwatch();
+	counter = 0;
+	isDraw = true;
+	lineWidthMax = random(4, 10);
+	brushMode = parseInt(random(brushModeSize));
+	console.log(brushMode);
+}
+function generateSwatch(){
+	var step = 255/4;
+
+	var ranges = {
+		c1:	[step*3, step*4],
+		c2: [step*2, step*3],
+		c3: [step, step*2],
+		c4: [0, step]
+	};
 	swatch = [
-		color(255, 0, 0, 255),
-		color(0, 255, 0, 255),
-		color(0, 50, 50, 255),
-		color(0, 0, 0, 255),
+		color(random(100, 255), random(50, 255), random(50, 255)),
+		color(random(0, 255), random(0, 255), random(0, 255)),
+		color(random(0, 255), random(0, 255), random(0, 255)),
+		color(random(0, 120), random(0, 120), random(0, 120)),
 	];
+}
+function getRandom(value){
+	return random(value[0], value[1]);
+
 }
 function setupBrush(){
 	brushSizeMax = appSettings[0]['brushSizeMax']*scaleFactor;
-	brushOpacityMax = appSettings[0]['brushOpacityMax'];
+	brushOpacityMax = appSettings[0]['brushOpacityMax']*1.5;
 }
 function calcCanvasSize(){
 	canvasHeight = windowHeight;
@@ -63,12 +96,35 @@ function calcScaleFactor(){
 	scaleFactor = windowHeight/appSettings[0]['canvasSize']['height'];
 	console.log(scaleFactor);
 }
+// update
 function draw(){
-	// events
-	// clear();
-	// fill(255, 0, 0);
-	// rect(toScreenX(0), 0, canvasWidth, canvasHeight);
-	updateBrush();
+	if(isDraw){
+		drawCircles();
+		updateBrush();	
+	} 
+	updateCounter();
+}
+function drawCircles(){
+		var border = 100;
+		var center = createVector(windowWidth/2, windowHeight/2);
+		var pos = createVector(random(windowWidth), random(windowHeight));
+		var dist = pos.dist(center);
+		var radius = windowHeight/3;
+		var size = map(dist, radius, windowHeight, 0, 20);
+		if(dist > radius){
+			noStroke();
+			var c = swatch[parseInt(random(0, 4))]; 
+			fill(c.levels[0], c.levels[1], c.levels[2], random(0, 255));
+			ellipse(pos.x, pos.y, size, size);
+		}
+}
+function updateCounter(){
+	// counter
+	counter++;
+	if(counter > Object.keys(data['frames']).length-1){
+		counter = 0;
+		isDraw = false;
+	}
 }
 function updateBrush(){
 	if(data['frames'][counter]['click'] == true){
@@ -93,13 +149,50 @@ function updateBrush(){
 	}
 	brushSize = brushSizeMax*pressure;
 	brushOpacity = brushOpacityMax*pressure;
+	lineWidth = lineWidthMax*pressure;
+}
+function drawBrush(x, y){
+	var mouseV = createVector(x, y);
+	pts.push(createVector(x, y));
+	var color = swatch[colorNum];
+	
+	switch(brushMode){
+		case 0:
+			brushModeLines(x, y, mouseV, color);
+			break;
+		case 1:
+			brushModeTriangles(x, y, mouseV, color);
+			break;
+		default:
+			brushModeLines(x, y, mouseV, color);
+			break;
+	} 	
+}
+function brushModeTriangles(x, y, mouseV, color){
+ 	strokeWeight(lineWidth);
+	fill(color.levels[0], color.levels[1], color.levels[2], brushOpacity);
+	noStroke();
+	for(var i = 0; i < pts.length; i++){
+		if (mouseV.dist(pts[i])/brushSize < random(0.4)) {
+			
+				var p1_i = Math.max(0, i - parseInt(random(10)) );
+				var p1 = pts[p1_i];
+				var p2 = pts[i];
+				var p3 = mouseV;
+				triangle(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
+			
+		}
+	}
 
-	// counter
-	counter++;
-	if(counter > Object.keys(data['frames']).length-1){
-		counter = 0;
-		clear();
-		console.log(counter);
+}
+function brushModeLines(x, y, mouseV, color){
+ 	strokeWeight(lineWidth);
+	stroke(color.levels[0], color.levels[1], color.levels[2], brushOpacity);
+	
+	for(var i = 0; i < pts.length; i++){
+		if (mouseV.dist(pts[i])/brushSize < random(0.4)) {
+	  		line(pts[i].x, pts[i].y, mouseV.x, mouseV.y);
+		}
 	}
 }
 function toScreenX(value){
@@ -111,22 +204,9 @@ function toScreenY(value){
 function clearPts() {
 	pts =[];
 }
-
+// events
 function mousePressed(){
-  
-}
-
-function drawBrush(x, y){
-  var mouseV = createVector(x, y);
-  pts.push(createVector(x, y));
-  var color = swatch[colorNum];
- 
-  stroke(color.levels[0], color.levels[1], color.levels[2], 20);
-  for(var i = 0; i < pts.length; i++){
-    if (mouseV.dist(pts[i])/brushSize < random(0.4)) {
-      line(pts[i].x, pts[i].y, mouseV.x, mouseV.y);
-    }
-  }
+	resetDrawing();
 }
 function mouseReleased(){
 	clearPts();
@@ -134,9 +214,10 @@ function mouseReleased(){
 function keyPressed(){
 	if (key == ' ') clearPts();
 }
-
 function windowResized(){
     resizeCanvas( windowWidth, windowHeight );
     calcScaleFactor();
 	calcCanvasSize();
+    setupBrush();
+    resetDrawing()
 }
