@@ -1,5 +1,7 @@
 [
    {
+      "brushOpacityMax" : 120,
+      "brushSizeMax" : 600,
       "canvasSize" : {
          "height" : 768,
          "width" : 512

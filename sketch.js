@@ -9,6 +9,16 @@ var canvasWidth;
 var canvasHeight;
 var canvasOffsetX;
 
+// brush
+var brushSize;
+var brushSizeMax;
+var brushOpacity;
+var brushOpacityMax;
+var pressure;
+var colorNum = 0;
+
+var swatch;
+
 function preload(){
 	var id = urlParam('portraitId');
 	print(id);
@@ -24,11 +34,25 @@ var urlParam = function(name, w){
 function setup(){
    	createCanvas( windowWidth, windowHeight );
    	
+   	// canvas
    	calcScaleFactor();
 	calcCanvasSize();
 
+	// brush
+	setupBrush();
 	clearPts();
+
 	background(255);
+	swatch = [
+		color(255, 0, 0, 255),
+		color(0, 255, 0, 255),
+		color(0, 50, 50, 255),
+		color(0, 0, 0, 255),
+	];
+}
+function setupBrush(){
+	brushSizeMax = appSettings[0]['brushSizeMax']*scaleFactor;
+	brushOpacityMax = appSettings[0]['brushOpacityMax'];
 }
 function calcCanvasSize(){
 	canvasHeight = windowHeight;
@@ -56,7 +80,20 @@ function updateBrush(){
 	var x = toScreenX(data['frames'][counter]['x']);
 	var y = toScreenY(data['frames'][counter]['y']);
 	drawBrush(x, y);
-	
+
+	// set parameters
+	pressure = data['frames'][counter]['pressure'];
+	if(data['frames'][counter]['colorNum'] != undefined ){
+		colorNum = data['frames'][counter]['colorNum'];
+	}
+	if(data['frames'][counter]['pressure']!=undefined){
+		pressure = data['frames'][counter]['pressure']
+	}else{
+		pressure = 0.2;
+	}
+	brushSize = brushSizeMax*pressure;
+	brushOpacity = brushOpacityMax*pressure;
+
 	// counter
 	counter++;
 	if(counter > Object.keys(data['frames']).length-1){
@@ -82,9 +119,11 @@ function mousePressed(){
 function drawBrush(x, y){
   var mouseV = createVector(x, y);
   pts.push(createVector(x, y));
-  stroke(0, 30);
+  var color = swatch[colorNum];
+ 
+  stroke(color.levels[0], color.levels[1], color.levels[2], 20);
   for(var i = 0; i < pts.length; i++){
-    if (mouseV.dist(pts[i])/200 < random(0.4)) {
+    if (mouseV.dist(pts[i])/brushSize < random(0.4)) {
       line(pts[i].x, pts[i].y, mouseV.x, mouseV.y);
     }
   }
