@@ -3,6 +3,7 @@ var data = [];
 var counter = 0;
 var appSettings = [];
 var isDraw = true;
+var isRedrawMode = false;
 
 // size
 var scaleFactor;
@@ -41,6 +42,11 @@ var urlParam = function(name, w){
 // setup
 function setup(){
    	createCanvas( windowWidth, windowHeight );
+   	var mode = urlParam('mode');
+	console.log(mode);
+   	if(mode == 'redraw'){
+   		isRedrawMode = true;
+   	}
    	
    	// canvas
    	calcScaleFactor();
@@ -105,25 +111,29 @@ function draw(){
 	updateCounter();
 }
 function drawCircles(){
-		var border = 100;
-		var center = createVector(windowWidth/2, windowHeight/2);
-		var pos = createVector(random(windowWidth), random(windowHeight));
-		var dist = pos.dist(center);
-		var radius = windowHeight/3;
-		var size = map(dist, radius, windowHeight, 0, 20);
-		if(dist > radius){
-			noStroke();
-			var c = swatch[parseInt(random(0, 4))]; 
-			fill(c.levels[0], c.levels[1], c.levels[2], random(0, 255));
-			ellipse(pos.x, pos.y, size, size);
-		}
+	var border = 100;
+	var center = createVector(windowWidth/2, windowHeight/2);
+	var pos = createVector(random(windowWidth), random(windowHeight));
+	var dist = pos.dist(center);
+	var radius = windowHeight/3;
+	var size = map(dist, radius, windowHeight, 0, 30*scaleFactor);
+	if(dist > radius){
+		noStroke();
+		var c = swatch[parseInt(random(0, 4))]; 
+		fill(c.levels[0], c.levels[1], c.levels[2], random(0, 255));
+		ellipse(pos.x, pos.y, size, size);
+	}
 }
 function updateCounter(){
 	// counter
 	counter++;
 	if(counter > Object.keys(data['frames']).length-1){
 		counter = 0;
-		isDraw = false;
+		if(isRedrawMode){
+			resetDrawing();
+		}else{
+			isDraw = false;
+		}
 	}
 }
 function updateBrush(){
