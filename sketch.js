@@ -144,7 +144,6 @@ function updateCounter(){
 }
 function updateBrush(){
 	if(data['frames'][counter]['click'] == true){
-		console.log(data['frames'][counter]['click']);
 		clearPts();
 	}
 
