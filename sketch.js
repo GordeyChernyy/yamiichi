@@ -27,6 +27,9 @@ var brushModeSize = 2;
 // bg
 var circleMode = 0;
 
+// playback
+var playbackSpeed = 5;
+
 function preload(){
 	var id = urlParam('portraitId');
 	print(id);
@@ -104,11 +107,14 @@ function calcScaleFactor(){
 }
 // update
 function draw(){
-	if(isDraw){
-		drawCircles();
-		updateBrush();	
-	} 
-	updateCounter();
+	// draw faster
+	for(var i = 0; i < playbackSpeed; i++){	
+		if(isDraw){
+			updateBrush();	
+		} 
+		updateCounter();
+	}
+	drawCircles();
 }
 function drawCircles(){
 	var border = 100;
